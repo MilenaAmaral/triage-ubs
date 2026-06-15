@@ -1,0 +1,237 @@
+:root {
+    --primary-color: #003366;    /* Azul Oxford/Hospitalar */
+    --accent-color: #4CAF50;     /* Verde Saúde/Triagem */
+    --bg-light: #f8fafc;         /* Fundo da página */
+    --card-bg: #ffffff;          /* Fundo dos cards e tabelas */
+    --text-main: #1e293b;        /* Texto principal */
+    --text-muted: #64748b;       /* Texto secundário */
+    
+    /* Cores do Protocolo de Manchester */
+    --manchester-vermelho: #ef4444;
+    --manchester-laranja: #f97316;
+    --manchester-amarelo: #eab308;
+    --manchester-verde: #22c55e;
+    --manchester-azul: #3b82f6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    display: flex;
+    min-height: 100vh;
+}
+
+/* CONTAINER PRINCIPAL (Layout com Barra Lateral) */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    width: 100%;
+}
+
+/* BARRA LATERAL (Sidebar) */
+.sidebar {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.sidebar .logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar .logo i {
+    color: var(--accent-color);
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.nav-links a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* CONTEÚDO PRINCIPAL */
+.main-content {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+}
+
+.main-content h1 {
+    font-size: 28px;
+    color: var(--primary-color);
+}
+
+/* CARDS DE PRIORIDADE (KPIs) */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card-kpi {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-left: 6px solid var(--text-muted);
+}
+
+/* Cores dinâmicas para as bordas dos cards baseadas na triagem */
+.card-kpi.vermelho { border-left-color: var(--manchester-vermelho); }
+.card-kpi.amarelo { border-left-color: var(--manchester-amarelo); }
+.card-kpi.verde { border-left-color: var(--manchester-verde); }
+.card-kpi.total { border-left-color: var(--primary-color); }
+
+.card-kpi span {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.card-kpi .number {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* ÁREA INFERIOR (Formulário + Fila) */
+.data-section {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.panel {
+    background-color: var(--card-bg);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.panel h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 10px;
+}
+
+/* FORMULÁRIO DE TRIAGEM */
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--primary-color);
+}
+
+.btn-submit {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #3e8e41;
+}
+
+/* TABELA DA FILA DE ESPERA */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th, td {
+    padding: 14px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+th {
+    background-color: #f8fafc;
+    color: var(--text-muted);
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+/* Badges de Classificação de Risco */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+}
+
+.badge.vermelho { background-color: var(--manchester-vermelho); }
+.badge.amarelo { background-color: var(--manchester-amarelo); color: #713f12; } /* Texto escuro para contraste */
+.badge.verde { background-color: var(--manchester-verde); }
