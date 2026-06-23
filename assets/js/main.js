@@ -156,12 +156,18 @@ function atualizarTabela() {
             <td>${paciente.historicoMedico && paciente.historicoMedico.length ? paciente.historicoMedico.join(', ') : '-'}</td>
             <td>${paciente.sintomas || '-'}</td>
             <td>${calcularTempoEspera(paciente)}</td>
+            <td><button type="button" class="btn-call">Chamar Paciente</button></td>
         `;
 
         if (tempoDecorrido > limiteAlerta) {
             linha.classList.add('alerta-prioridade');
         }
         tabelaPacientes.appendChild(linha);
+
+        const btnCall = linha.querySelector('.btn-call');
+        if (btnCall) {
+            btnCall.addEventListener('click', () => chamarPaciente(paciente));
+        }
     });
 }
 
@@ -216,6 +222,44 @@ function capturarHistoricoMedico(alergiaDetalhe = '') {
         historico.push(`Detalhe: ${alergiaDetalhe}`);
     }
     return historico;
+}
+
+function chamarPaciente(paciente) {
+    const telaRecepcao = document.getElementById('tela-recepcao');
+    const recepcaoTexto = document.getElementById('recepcao-texto');
+    if (!telaRecepcao || !recepcaoTexto) return;
+
+    const pacienteNome = paciente.nome ? paciente.nome.toUpperCase() : 'X';
+    recepcaoTexto.textContent = `SENHA / PACIENTE ${pacienteNome} - DIRIJA-SE AO CONSULTÓRIO 2`;
+    telaRecepcao.classList.remove('hidden');
+    gerarBip();
+}
+
+function gerarBip() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        const oscillator = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        oscillator.connect(gain);
+        gain.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+        oscillator.onended = () => audioCtx.close();
+    } catch (error) {
+        console.warn('Falha ao reproduzir bip:', error);
+    }
+}
+
+const btnFecharRecepcao = document.getElementById('btn-fechar-recepcao');
+const telaRecepcao = document.getElementById('tela-recepcao');
+if (btnFecharRecepcao && telaRecepcao) {
+    btnFecharRecepcao.addEventListener('click', () => {
+        telaRecepcao.classList.add('hidden');
+    });
 }
 
 function calcularIdadePorDataNascimento(dataNascimento) {

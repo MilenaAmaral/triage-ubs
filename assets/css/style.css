@@ -394,10 +394,144 @@ body {
     overflow-x: auto;
 }
 
+.btn-call {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-call:hover {
+    background-color: #3b8c46;
+}
+
+.tela-recepcao {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.tela-recepcao.hidden {
+    display: none;
+}
+
+.recepcao-card {
+    background: #0f172a;
+    border: 2px solid #38bdf8;
+    border-radius: 24px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.45);
+    position: relative;
+}
+
+.recepcao-texto {
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1.05;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.btn-close-recepcao {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.btn-close-recepcao:hover {
+    background: rgba(255,255,255,0.22);
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+}
+
+.btn-call {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-call:hover {
+    background-color: #3b8c46;
+}
+
+.tela-recepcao {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.tela-recepcao.hidden {
+    display: none;
+}
+
+.recepcao-card {
+    background: #0f172a;
+    border: 2px solid #38bdf8;
+    border-radius: 24px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.45);
+    position: relative;
+}
+
+.recepcao-texto {
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1.05;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.btn-close-recepcao {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.btn-close-recepcao:hover {
+    background: rgba(255,255,255,0.22);
 }
 
 th, td {
