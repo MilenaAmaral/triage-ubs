@@ -1,5 +1,6 @@
 ﻿:root {
     --primary-color: #003366;    /* Azul Oxford/Hospitalar */
+    --primary-color-text: #003366; /* Azul para títulos */
     --accent-color: #4CAF50;     /* Verde Saúde/Triagem */
     --bg-page: #f8fafc;          /* Fundo da página */
     --bg-surface: #ffffff;       /* Fundo dos cards e painéis */
@@ -54,6 +55,7 @@ body {
 }
 
 body.dark-mode {
+    --primary-color-text: #60a5fa; /* Azul claro para dark mode */
     --bg-page: #0f172a;
     --bg-surface: #172138;
     --bg-surface-alt: #1f2937;
@@ -194,7 +196,7 @@ html, body {
 
 .main-content h1 {
     font-size: 28px;
-    color: var(--primary-color);
+    color: var(--primary-color-text);
 }
 
 /* CARDS DE PRIORIDADE (KPIs) */
@@ -231,7 +233,7 @@ html, body {
 .card-kpi .number {
     font-size: 32px;
     font-weight: bold;
-    color: var(--primary-color);
+    color: var(--primary-color-text);
 }
 
 /* ÁREA INFERIOR (Formulário + Fila) */
@@ -300,7 +302,7 @@ html, body {
 .panel h2 {
     font-size: 20px;
     margin-bottom: 20px;
-    color: var(--primary-color);
+    color: var(--primary-color-text);
     border-bottom: 2px solid var(--surface-border-alt);
     padding-bottom: 10px;
 }
@@ -380,7 +382,7 @@ html, body {
 .form-section-title h3 {
     margin: 0 0 10px;
     font-size: 16px;
-    color: var(--primary-color);
+    color: var(--primary-color-text);
 }
 
 .form-group input, .form-group select, .form-group textarea {
@@ -453,7 +455,7 @@ html, body {
 }
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--primary-color);
+    border-color: var(--primary-color-text);
 }
 
 .btn-submit {
