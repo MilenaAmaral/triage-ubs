@@ -136,9 +136,66 @@ body {
 /* ÁREA INFERIOR (Formulário + Fila) */
 .data-section {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: 1fr;
     gap: 30px;
-    align-items: start;
+    align-items: stretch;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.double-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.panel {
+    min-height: 340px;
+}
+
+.queue-panel, .history-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-panel .table-wrapper,
+.queue-panel .table-wrapper {
+    overflow: auto;
+    max-height: 520px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: var(--text-main);
+    border: 1px solid #cbd5e1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+@media (max-width: 1180px) {
+    .data-section {
+        grid-template-columns: 1fr;
+    }
+    .double-panel {
+        grid-template-columns: 1fr;
+    }
 }
 
 .panel {
@@ -164,6 +221,22 @@ body {
     gap: 8px;
 }
 
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-group.span-col-2 {
+    grid-column: span 2;
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .form-group label {
     font-size: 14px;
     font-weight: 600;
@@ -174,6 +247,16 @@ body {
     margin: 0 0 10px;
     font-size: 16px;
     color: var(--primary-color);
+}
+
+@media (max-width: 1000px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        justify-content: stretch;
+    }
 }
 
 .form-group input, .form-group select, .form-group textarea {
@@ -190,6 +273,21 @@ body {
     font-size: 13px;
     color: var(--text-muted);
     line-height: 1.35;
+}
+
+#classificacao.alert-vermelho {
+    background-color: rgba(239, 68, 68, 0.18);
+    color: #991b1b;
+}
+
+#classificacao.alert-laranja {
+    background-color: rgba(249, 115, 22, 0.18);
+    color: #9a3412;
+}
+
+#classificacao.alert-verde {
+    background-color: rgba(34, 197, 94, 0.18);
+    color: #14532d;
 }
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
@@ -262,4 +360,21 @@ th {
     margin-top: 8px;
     font-size: 13px;
     color: var(--text-muted);
+}
+
+.hidden {
+    display: none;
+}
+
+.view {
+    display: block;
+}
+
+#historico-view .table-wrapper {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+#tabela-historico td {
+    vertical-align: top;
 }

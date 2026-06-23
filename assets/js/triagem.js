@@ -192,6 +192,103 @@ function sugerirClassificacaoPelosSinais(idade, fc, fr, saturacao, pressao, temp
     return resultado;
 }
 
+function nivelMaior(a, b) {
+    const ordem = { normal: 0, azul: 1, verde: 2, laranja: 3, vermelho: 4 };
+    return ordem[a] >= ordem[b] ? a : b;
+}
+
+function limparAvisoVisual(selectClassificacao) {
+    selectClassificacao.classList.remove('alert-vermelho', 'alert-laranja', 'alert-verde');
+    selectClassificacao.style.borderColor = '';
+    selectClassificacao.style.backgroundColor = '';
+    selectClassificacao.style.color = '';
+}
+
+function aplicarAvisoVisual(selectClassificacao, nivel) {
+    limparAvisoVisual(selectClassificacao);
+    if (nivel && nivel !== 'normal') {
+        selectClassificacao.classList.add(`alert-${nivel}`);
+        selectClassificacao.style.borderColor = nivel === 'vermelho' ? '#991b1b' : nivel === 'laranja' ? '#9a3412' : '#166534';
+        if (nivel === 'vermelho') {
+            selectClassificacao.style.backgroundColor = 'rgba(239, 68, 68, 0.18)';
+            selectClassificacao.style.color = '#991b1b';
+        } else if (nivel === 'laranja') {
+            selectClassificacao.style.backgroundColor = 'rgba(249, 115, 22, 0.18)';
+            selectClassificacao.style.color = '#9a3412';
+        } else if (nivel === 'verde') {
+            selectClassificacao.style.backgroundColor = 'rgba(34, 197, 94, 0.18)';
+            selectClassificacao.style.color = '#14532d';
+        }
+    }
+}
+
+function avaliarAlarmesVitais(idade, fc, fr, saturacao, pressao, temperatura, glicemia) {
+    const avisos = [];
+    let nivel = 'normal';
+    const faixa = obterFaixaEtaria(idade);
+
+    const sat = Number(saturacao);
+    if (!Number.isNaN(sat)) {
+        if (sat < 90) {
+            avisos.push('SpO₂ crítica (< 90%)');
+            nivel = 'vermelho';
+        } else if (sat <= 94) {
+            avisos.push('SpO₂ reduzida (90-94%)');
+            nivel = nivelMaior(nivel, 'laranja');
+        }
+    }
+
+    const temp = Number(temperatura);
+    if (!Number.isNaN(temp)) {
+        if (temp >= 39) {
+            avisos.push('temperatura crítica (≥ 39°C)');
+            nivel = 'vermelho';
+        } else if (temp >= 37.8) {
+            avisos.push('febre (37.8-38.9°C)');
+            nivel = nivelMaior(nivel, 'laranja');
+        } else if (temp < 35.9) {
+            avisos.push('temperatura baixa (< 35.9°C)');
+            nivel = nivelMaior(nivel, 'laranja');
+        }
+    }
+
+    const glic = Number(glicemia);
+    if (!Number.isNaN(glic)) {
+        if (glic < 70) {
+            avisos.push('hipoglicemia (< 70 mg/dL)');
+            nivel = 'vermelho';
+        } else if (glic > 300) {
+            avisos.push('hiperglicemia severa (> 300 mg/dL)');
+            nivel = 'vermelho';
+        } else if (glic >= 126) {
+            avisos.push('hiperglicemia (≥ 126 mg/dL)');
+            nivel = nivelMaior(nivel, 'laranja');
+        }
+    }
+
+    if (faixa) {
+        const fcNum = Number(fc);
+        if (!Number.isNaN(fcNum) && (fcNum < faixa.fc[0] || fcNum > faixa.fc[1])) {
+            avisos.push('FC fora da faixa etária');
+            nivel = nivelMaior(nivel, 'laranja');
+        }
+
+        const frNum = Number(fr);
+        if (!Number.isNaN(frNum) && (frNum < faixa.fr[0] || frNum > faixa.fr[1])) {
+            avisos.push('FR fora da faixa etária');
+            nivel = nivelMaior(nivel, 'laranja');
+        }
+    }
+
+    const pressaoStatus = classificarPressaoPorIdade(idade, pressao);
+    if (pressaoStatus === 'anormal') {
+        avisos.push('pressão arterial fora da faixa etária');
+        nivel = nivelMaior(nivel, 'laranja');
+    }
+
+    return { nivel, avisos };
+}
+
 function atualizarSugestaoPorSinais() {
     const idade = document.getElementById('idade').value.trim();
     const fc = Number(document.getElementById('fc').value.trim());
@@ -203,14 +300,27 @@ function atualizarSugestaoPorSinais() {
     const selectClassificacao = document.getElementById('classificacao');
     const aviso = document.getElementById('avaliacao-vitais');
 
+    if (!selectClassificacao) return;
+
+    const alerta = avaliarAlarmesVitais(idade, fc, fr, saturacao, pressao, temperatura, glicemia);
+    aplicarAvisoVisual(selectClassificacao, alerta.nivel);
+
+    if (alerta.nivel !== 'normal') {
+        selectClassificacao.value = alerta.nivel;
+        if (aviso) aviso.textContent = `Alerta: ${alerta.avisos.join(', ')}.`;
+    }
+
     if (!idade || !fc || !fr || !saturacao || !pressao || !temperatura || !glicemia) {
-        if (aviso) aviso.textContent = 'O sistema usa idade e sinais vitais para uma classificação mais precisa.';
+        if (aviso && alerta.nivel === 'normal') aviso.textContent = 'O sistema usa idade e sinais vitais para uma classificação mais precisa.';
         return;
     }
 
     const resultado = sugerirClassificacaoPelosSinais(idade, fc, fr, saturacao, pressao, temperatura, glicemia);
-    selectClassificacao.value = resultado.classificacao;
-    if (aviso) aviso.textContent = resultado.justificativa;
+    const classificacaoFinal = alerta.nivel !== 'normal' ? nivelMaior(resultado.classificacao, alerta.nivel) : resultado.classificacao;
+    selectClassificacao.value = classificacaoFinal;
+    if (aviso) aviso.textContent = alerta.nivel !== 'normal'
+        ? `Alerta: ${alerta.avisos.join(', ')}. ${resultado.justificativa}`
+        : resultado.justificativa;
 
     selectClassificacao.style.borderColor = 'var(--accent-color)';
     setTimeout(() => {

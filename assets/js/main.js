@@ -1,6 +1,11 @@
 // Selecionando os elementos do HTML que vamos manipular
 const form = document.getElementById('form-triagem');
 const tabelaPacientes = document.getElementById('tabela-pacientes');
+const tabelaHistorico = document.getElementById('tabela-historico');
+const navLinks = document.querySelectorAll('.nav-links a[data-view]');
+const views = document.querySelectorAll('.view');
+const historicoKey = 'triageUBSHistorico';
+let historicoPacientes = [];
 
 // Selecionando os números dos cards para atualização dinâmica
 const cardTotal = document.querySelector('.card-kpi.total .number');
@@ -35,19 +40,87 @@ function ordenarFila() {
     });
 }
 
-function calcularTempoEspera(paciente) {
-    const index = filaPacientes.indexOf(paciente);
-    if (index <= 0) return '0 min';
+function switchView(viewId) {
+    views.forEach(view => view.classList.toggle('hidden', view.id !== viewId));
+    navLinks.forEach(link => link.classList.toggle('active', link.dataset.view === viewId));
+}
 
-    let totalMinutos = 0;
-    for (let i = 0; i < index; i++) {
-        totalMinutos += tempoBasePorPrioridade[filaPacientes[i].prioridade];
+function carregarHistorico() {
+    try {
+        const stored = localStorage.getItem(historicoKey);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.warn('Erro ao carregar histórico:', error);
+        return [];
+    }
+}
+
+function salvarHistorico() {
+    try {
+        localStorage.setItem(historicoKey, JSON.stringify(historicoPacientes));
+    } catch (error) {
+        console.warn('Erro ao salvar histórico:', error);
+    }
+}
+
+function atualizarHistorico() {
+    if (!tabelaHistorico) return;
+    tabelaHistorico.innerHTML = '';
+
+    if (historicoPacientes.length === 0) {
+        tabelaHistorico.innerHTML = `
+            <tr>
+                <td colspan="5" class="vazio">Nenhum registro no histórico ainda.</td>
+            </tr>
+        `;
+        return;
     }
 
-    const tempoDecorrido = filaInicioAtendimento ? Math.floor((Date.now() - filaInicioAtendimento) / 60000) : 0;
-    const tempoRestante = Math.max(0, totalMinutos - tempoDecorrido);
+    historicoPacientes.forEach(paciente => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td>${paciente.nome}</td>
+            <td>${paciente.idade}</td>
+            <td><span class="badge ${paciente.prioridade}">${paciente.badgeTexto}</span></td>
+            <td>${paciente.dataHoraFormatada}</td>
+            <td>${paciente.justificativa || '-'}</td>
+        `;
+        tabelaHistorico.appendChild(linha);
+    });
+}
 
-    return `${tempoRestante} min`;
+function limparHistorico() {
+    historicoPacientes = [];
+    salvarHistorico();
+    atualizarHistorico();
+}
+
+function registrarHistorico(paciente) {
+    const registro = {
+        nome: paciente.nome,
+        idade: paciente.idade,
+        prioridade: paciente.prioridade,
+        badgeTexto: paciente.badgeTexto,
+        justificativa: paciente.justificativa,
+        dataHoraFormatada: new Date(paciente.entradaFila).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })
+    };
+
+    historicoPacientes.unshift(registro);
+    salvarHistorico();
+    atualizarHistorico();
+}
+
+function calcularTempoEspera(paciente) {
+    const entrada = paciente.entradaFila || paciente.chegada;
+    const tempoEsperaMinutos = Math.max(0, Math.floor((Date.now() - entrada) / 60000));
+    return `${tempoEsperaMinutos} min`;
 }
 
 function atualizarTabela() {
@@ -77,6 +150,11 @@ function atualizarTabela() {
     });
 }
 
+function atualizarPainel() {
+    atualizarTabela();
+    atualizarContadores();
+}
+
 function atualizarContadores() {
     const vermelho = filaPacientes.filter(p => p.prioridade === 'vermelho').length;
     const laranja = filaPacientes.filter(p => p.prioridade === 'laranja').length;
@@ -90,7 +168,20 @@ function atualizarContadores() {
     cardAzul.textContent = azul;
 }
 
-function adicionarPaciente(nome, cns, idade, fc, fr, saturacao, glicemia, pressao, temperatura, prioridade, sintomas, justificativa) {
+function calcularIdadePorDataNascimento(dataNascimento) {
+    if (!dataNascimento) return '';
+    const nascimento = new Date(dataNascimento);
+    if (Number.isNaN(nascimento.getTime())) return '';
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade -= 1;
+    }
+    return idade >= 0 ? idade : '';
+}
+
+function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiologico, peso, fc, fr, saturacao, glicemia, pressao, temperatura, prioridade, sintomas, justificativa) {
     const badgeTexto = {
         vermelho: 'EMERGÊNCIA',
         laranja: 'MUITO URGENTE',
@@ -98,10 +189,15 @@ function adicionarPaciente(nome, cns, idade, fc, fr, saturacao, glicemia, pressa
         azul: 'NÃO URGENTE'
     }[prioridade] || 'NÃO CLASSIFICADO';
 
+    const entradaFila = Date.now();
     const paciente = {
         nome,
         cns,
+        dataNascimento,
         idade,
+        nomeMae,
+        sexoBiologico,
+        peso,
         fc,
         fr,
         saturacao,
@@ -112,13 +208,14 @@ function adicionarPaciente(nome, cns, idade, fc, fr, saturacao, glicemia, pressa
         prioridade,
         justificativa,
         badgeTexto,
-        chegada: Date.now()
+        entradaFila,
+        chegada: entradaFila
     };
 
     filaPacientes.push(paciente);
     ordenarFila();
-    atualizarTabela();
-    atualizarContadores();
+    atualizarPainel();
+    registrarHistorico(paciente);
 
     if (!filaInicioAtendimento) {
         filaInicioAtendimento = Date.now();
@@ -130,7 +227,11 @@ form.addEventListener('submit', function(evento) {
 
     const nome = document.getElementById('nome').value.trim();
     const cns = document.getElementById('cns').value.trim();
-    const idade = document.getElementById('idade').value.trim();
+    const dataNascimento = document.getElementById('data-nascimento').value.trim();
+    let idade = document.getElementById('idade').value.trim();
+    const nomeMae = document.getElementById('nome-mae').value.trim();
+    const sexoBiologico = document.getElementById('sexo-biologico').value.trim();
+    const peso = document.getElementById('peso').value.trim();
     const fc = document.getElementById('fc').value.trim();
     const fr = document.getElementById('fr').value.trim();
     const saturacao = document.getElementById('saturacao').value.trim();
@@ -139,7 +240,12 @@ form.addEventListener('submit', function(evento) {
     const temperatura = document.getElementById('temperatura').value.trim();
     const sintomas = document.getElementById('sintomas').value.trim();
 
-    if (!nome || !cns || !idade || !fc || !fr || !saturacao || !glicemia || !pressao || !temperatura) {
+    if (!idade && dataNascimento) {
+        idade = calcularIdadePorDataNascimento(dataNascimento).toString();
+        document.getElementById('idade').value = idade;
+    }
+
+    if (!nome || !cns || !dataNascimento || !idade || !nomeMae || !sexoBiologico || !peso || !fc || !fr || !saturacao || !glicemia || !pressao || !temperatura) {
         alert('Preencha todos os campos obrigatórios antes de enviar.');
         return;
     }
@@ -148,9 +254,37 @@ form.addEventListener('submit', function(evento) {
     const classificacao = resultado.classificacao;
     const justificativa = resultado.justificativa;
 
-    adicionarPaciente(nome, cns, idade, Number(fc), Number(fr), Number(saturacao), Number(glicemia), pressao, Number(temperatura), classificacao, sintomas, justificativa);
+    adicionarPaciente(
+        nome,
+        cns,
+        dataNascimento,
+        idade,
+        nomeMae,
+        sexoBiologico,
+        Number(peso),
+        Number(fc),
+        Number(fr),
+        Number(saturacao),
+        Number(glicemia),
+        pressao,
+        Number(temperatura),
+        classificacao,
+        sintomas,
+        justificativa
+    );
     form.reset();
 });
+
+const dataNascimentoInput = document.getElementById('data-nascimento');
+const idadeInput = document.getElementById('idade');
+if (dataNascimentoInput && idadeInput) {
+    dataNascimentoInput.addEventListener('change', () => {
+        const idadeCalculada = calcularIdadePorDataNascimento(dataNascimentoInput.value);
+        if (idadeCalculada !== '') {
+            idadeInput.value = idadeCalculada;
+        }
+    });
+}
 
 setInterval(() => {
     if (filaPacientes.length > 0) {
@@ -158,5 +292,25 @@ setInterval(() => {
     }
 }, 1000);
 
+historicoPacientes = carregarHistorico();
+atualizarHistorico();
+switchView('dashboard-view');
 atualizarTabela();
 atualizarContadores();
+
+const botaoLimparHistorico = document.getElementById('btn-limpar-historico');
+if (botaoLimparHistorico) {
+    botaoLimparHistorico.addEventListener('click', () => {
+        if (confirm('Deseja realmente apagar todo o histórico de pacientes?')) {
+            limparHistorico();
+        }
+    });
+}
+
+navLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const target = this.dataset.view;
+        if (target) switchView(target);
+    });
+});
