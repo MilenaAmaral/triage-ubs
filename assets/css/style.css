@@ -231,6 +231,30 @@ body {
     grid-column: span 2;
 }
 
+.med-history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+    padding: 14px 10px;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+}
+
+.med-history-grid .history-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.med-history-grid .history-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+}
+
 .form-actions {
     margin-top: 20px;
     display: flex;

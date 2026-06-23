@@ -143,6 +143,7 @@ function atualizarTabela() {
             <td>${paciente.idade}</td>
             <td>${paciente.cns}</td>
             <td><span class="badge ${paciente.prioridade}" title="${justificativaEscapada}">${paciente.badgeTexto}</span></td>
+            <td>${paciente.historicoMedico && paciente.historicoMedico.length ? paciente.historicoMedico.join(', ') : '-'}</td>
             <td>${paciente.sintomas || '-'}</td>
             <td>${calcularTempoEspera(paciente)}</td>
         `;
@@ -194,6 +195,11 @@ function atualizarStatusLotacao() {
     }
 }
 
+function capturarHistoricoMedico() {
+    const campos = document.querySelectorAll('#historico-medico input[type="checkbox"]:checked');
+    return Array.from(campos).map(item => item.value);
+}
+
 function calcularIdadePorDataNascimento(dataNascimento) {
     if (!dataNascimento) return '';
     const nascimento = new Date(dataNascimento);
@@ -207,7 +213,7 @@ function calcularIdadePorDataNascimento(dataNascimento) {
     return idade >= 0 ? idade : '';
 }
 
-function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiologico, peso, fc, fr, saturacao, glicemia, pressao, temperatura, prioridade, sintomas, justificativa) {
+function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiologico, peso, fc, fr, saturacao, glicemia, pressao, temperatura, prioridade, sintomas, historicoMedico, justificativa) {
     const badgeTexto = {
         vermelho: 'EMERGÊNCIA',
         laranja: 'MUITO URGENTE',
@@ -224,6 +230,7 @@ function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiolog
         nomeMae,
         sexoBiologico,
         peso,
+        historicoMedico,
         fc,
         fr,
         saturacao,
@@ -265,6 +272,7 @@ form.addEventListener('submit', function(evento) {
     const pressao = document.getElementById('pressao').value.trim();
     const temperatura = document.getElementById('temperatura').value.trim();
     const sintomas = document.getElementById('sintomas').value.trim();
+    const historicoMedico = capturarHistoricoMedico();
 
     if (!idade && dataNascimento) {
         idade = calcularIdadePorDataNascimento(dataNascimento).toString();
@@ -296,6 +304,7 @@ form.addEventListener('submit', function(evento) {
         Number(temperatura),
         classificacao,
         sintomas,
+        historicoMedico,
         justificativa
     );
     form.reset();
