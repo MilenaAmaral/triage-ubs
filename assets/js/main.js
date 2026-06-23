@@ -31,6 +31,13 @@ const tempoBasePorPrioridade = {
     azul: 45
 };
 
+const limiteAlertaPorPrioridade = {
+    vermelho: 5,
+    laranja: 10,
+    verde: 20,
+    azul: 35
+};
+
 function ordenarFila() {
     filaPacientes.sort((a, b) => {
         if (prioridadePontuacao[b.prioridade] !== prioridadePontuacao[a.prioridade]) {
@@ -138,6 +145,9 @@ function atualizarTabela() {
     filaPacientes.forEach((paciente) => {
         const linha = document.createElement('tr');
         const justificativaEscapada = paciente.justificativa ? paciente.justificativa.replace(/"/g, '&quot;') : '';
+        const tempoDecorrido = Math.floor((Date.now() - paciente.entradaFila) / 60000);
+        const limiteAlerta = limiteAlertaPorPrioridade[paciente.prioridade] || tempoBasePorPrioridade[paciente.prioridade] || 0;
+
         linha.innerHTML = `
             <td>${paciente.nome}</td>
             <td>${paciente.idade}</td>
@@ -147,6 +157,10 @@ function atualizarTabela() {
             <td>${paciente.sintomas || '-'}</td>
             <td>${calcularTempoEspera(paciente)}</td>
         `;
+
+        if (tempoDecorrido > limiteAlerta) {
+            linha.classList.add('alerta-prioridade');
+        }
         tabelaPacientes.appendChild(linha);
     });
 }
@@ -195,9 +209,13 @@ function atualizarStatusLotacao() {
     }
 }
 
-function capturarHistoricoMedico() {
+function capturarHistoricoMedico(alergiaDetalhe = '') {
     const campos = document.querySelectorAll('#historico-medico input[type="checkbox"]:checked');
-    return Array.from(campos).map(item => item.value);
+    const historico = Array.from(campos).map(item => item.value);
+    if (historico.includes('Alergia a Medicamentos') && alergiaDetalhe) {
+        historico.push(`Detalhe: ${alergiaDetalhe}`);
+    }
+    return historico;
 }
 
 function calcularIdadePorDataNascimento(dataNascimento) {
@@ -272,7 +290,9 @@ form.addEventListener('submit', function(evento) {
     const pressao = document.getElementById('pressao').value.trim();
     const temperatura = document.getElementById('temperatura').value.trim();
     const sintomas = document.getElementById('sintomas').value.trim();
-    const historicoMedico = capturarHistoricoMedico();
+    const alergiaMedicamentosDetalheInput = document.getElementById('alergia-medicamentos-detalhe');
+    const alergiaMedicamentosDetalhe = alergiaMedicamentosDetalheInput ? alergiaMedicamentosDetalheInput.value.trim() : '';
+    const historicoMedico = capturarHistoricoMedico(alergiaMedicamentosDetalhe);
 
     if (!idade && dataNascimento) {
         idade = calcularIdadePorDataNascimento(dataNascimento).toString();
@@ -281,6 +301,11 @@ form.addEventListener('submit', function(evento) {
 
     if (!nome || !cns || !dataNascimento || !idade || !nomeMae || !sexoBiologico || !peso || !fc || !fr || !saturacao || !glicemia || !pressao || !temperatura) {
         alert('Preencha todos os campos obrigatórios antes de enviar.');
+        return;
+    }
+
+    if (alergiaMedicamentosCheckbox && alergiaMedicamentosCheckbox.checked && !alergiaMedicamentosDetalhe) {
+        alert('Informe qual medicamento causou alergia.');
         return;
     }
 
@@ -308,7 +333,27 @@ form.addEventListener('submit', function(evento) {
         justificativa
     );
     form.reset();
+    if (detalheAlergiaContainer) {
+        detalheAlergiaContainer.style.display = 'none';
+    }
+    if (alergiaMedicamentosDetalheInput) {
+        alergiaMedicamentosDetalheInput.required = false;
+    }
 });
+
+const alergiaMedicamentosCheckbox = document.getElementById('alergia-medicamentos-checkbox');
+const detalheAlergiaContainer = document.getElementById('detalhe-alergia-container');
+const alergiaMedicamentosDetalheInput = document.getElementById('alergia-medicamentos-detalhe');
+if (alergiaMedicamentosCheckbox && detalheAlergiaContainer && alergiaMedicamentosDetalheInput) {
+    alergiaMedicamentosCheckbox.addEventListener('change', () => {
+        const visible = alergiaMedicamentosCheckbox.checked;
+        detalheAlergiaContainer.style.display = visible ? 'block' : 'none';
+        alergiaMedicamentosDetalheInput.required = visible;
+        if (!visible) {
+            alergiaMedicamentosDetalheInput.value = '';
+        }
+    });
+}
 
 const dataNascimentoInput = document.getElementById('data-nascimento');
 const idadeInput = document.getElementById('idade');

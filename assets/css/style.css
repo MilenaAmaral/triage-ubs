@@ -255,6 +255,24 @@ body {
     accent-color: var(--primary-color);
 }
 
+.hidden-field {
+    display: none !important;
+}
+
+.alerta-prioridade {
+    animation: piscar-alerta 1s infinite ease-in-out;
+    background-color: rgba(251, 191, 36, 0.18);
+}
+
+.alerta-prioridade td {
+    border-color: #f59e0b;
+}
+
+@keyframes piscar-alerta {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 .form-actions {
     margin-top: 20px;
     display: flex;
