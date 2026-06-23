@@ -5,6 +5,7 @@ const tabelaHistorico = document.getElementById('tabela-historico');
 const navLinks = document.querySelectorAll('.nav-links a[data-view]');
 const views = document.querySelectorAll('.view');
 const historicoKey = 'triageUBSHistorico';
+const filaKey = 'triageUBSFila';
 let historicoPacientes = [];
 
 // Selecionando os números dos cards para atualização dinâmica
@@ -39,54 +40,99 @@ const limiteAlertaPorPrioridade = {
     azul: 35
 };
 
+const badgeTextoPorPrioridade = {
+    vermelho: 'EMERGÊNCIA',
+    laranja: 'MUITO URGENTE',
+    verde: 'POUCO URGENTE',
+    azul: 'NÃO URGENTE'
+};
+
 function ordenarFila() {
     filaPacientes.sort((a, b) => {
         if (prioridadePontuacao[b.prioridade] !== prioridadePontuacao[a.prioridade]) {
             return prioridadePontuacao[b.prioridade] - prioridadePontuacao[a.prioridade];
         }
-        return a.chegada - b.chegada;
+        return (a.chegada || a.entradaFila) - (b.chegada || b.entradaFila);
+    });
+}
+
+function formatarPacienteFila(paciente) {
+    return {
+        ...paciente,
+        badgeTexto: paciente.badgeTexto || badgeTextoPorPrioridade[paciente.prioridade] || 'NÃO CLASSIFICADO',
+        chegada: paciente.chegada || paciente.entradaFila,
+    };
+}
+
+function salvarFila() {
+    try {
+        localStorage.setItem(filaKey, JSON.stringify(filaPacientes));
+    } catch (error) {
+        console.warn('Erro ao salvar fila no localStorage:', error);
+    }
+}
+
+function parseJsonSafe(response) {
+    return response.text().then((texto) => {
+        if (!texto) return [];
+        try {
+            return JSON.parse(texto);
+        } catch (erro) {
+            console.warn('Erro ao analisar JSON inicial:', erro, texto);
+            return [];
+        }
     });
 }
 
 async function fetchFilaBackend() {
     try {
-        const resposta = await fetch('/api/fila');
-        if (!resposta.ok) {
-            throw new Error('Falha ao carregar fila de atendimento.');
-        }
-        const dados = await resposta.json();
+        const stored = carregarFila();
         filaPacientes.length = 0;
-        filaPacientes.push(...dados);
+        filaPacientes.push(...stored.map(formatarPacienteFila));
         ordenarFila();
         atualizarPainel();
     } catch (error) {
-        console.warn('Erro de rede ao buscar fila:', error);
+        console.warn('Erro ao carregar fila local:', error);
     }
 }
 
 async function enviarTriagemParaBackend(paciente) {
-    const resposta = await fetch('/api/triagem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paciente)
-    });
-    const dado = await resposta.json();
-    if (!resposta.ok) {
-        throw new Error(dado.error || 'Erro ao salvar triagem.');
-    }
-    return dado;
+    adicionarPaciente(
+        paciente.nome,
+        paciente.cns,
+        paciente.dataNascimento,
+        paciente.idade,
+        paciente.nomeMae,
+        paciente.sexoBiologico,
+        paciente.peso,
+        paciente.fc,
+        paciente.fr,
+        paciente.saturacao,
+        paciente.glicemia,
+        paciente.pressao,
+        paciente.temperatura,
+        paciente.prioridade,
+        paciente.sintomas,
+        paciente.historicoMedico,
+        paciente.justificativa
+    );
+    salvarFila();
+    return { paciente };
 }
 
 async function atenderPacienteBackend(id) {
-    const resposta = await fetch(`/api/triagem/${encodeURIComponent(id)}/atender`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    const dado = await resposta.json();
-    if (!resposta.ok) {
-        throw new Error(dado.error || 'Erro ao atender paciente.');
+    const indice = filaPacientes.findIndex(item => item.id === id);
+    if (indice === -1) {
+        throw new Error('Paciente não encontrado na fila.');
     }
-    return dado;
+
+    const paciente = filaPacientes[indice];
+    paciente.status = 'Em Atendimento';
+    paciente.atendimentoHora = Date.now();
+    filaPacientes.splice(indice, 1);
+    salvarFila();
+
+    return { paciente };
 }
 
 function switchView(viewId) {
@@ -100,6 +146,16 @@ function carregarHistorico() {
         return stored ? JSON.parse(stored) : [];
     } catch (error) {
         console.warn('Erro ao carregar histórico:', error);
+        return [];
+    }
+}
+
+function carregarFila() {
+    try {
+        const stored = localStorage.getItem(filaKey);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.warn('Erro ao carregar fila:', error);
         return [];
     }
 }
@@ -172,6 +228,71 @@ function calcularTempoEspera(paciente) {
     return `${tempoEsperaMinutos} min`;
 }
 
+function formatarHistoricoPaciente(paciente) {
+    const dataHora = paciente.atendimentoHora || paciente.entradaFila || paciente.dataHora;
+    return {
+        nome: paciente.nome,
+        idade: paciente.idade,
+        prioridade: paciente.prioridade,
+        badgeTexto: paciente.badgeTexto || badgeTextoPorPrioridade[paciente.prioridade] || 'NÃO CLASSIFICADO',
+        justificativa: paciente.justificativa || '-',
+        dataHoraFormatada: paciente.dataHoraFormatada || new Date(dataHora || Date.now()).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })
+    };
+}
+
+function obterLimiteAlerta(paciente) {
+    return limiteAlertaPorPrioridade[paciente.prioridade] || tempoBasePorPrioridade[paciente.prioridade] || 0;
+}
+
+function verificarAlertaTempo(paciente) {
+    const entrada = paciente.entradaFila || paciente.chegada;
+    const tempoDecorrido = Math.max(0, Math.floor((Date.now() - entrada) / 60000));
+    return tempoDecorrido > obterLimiteAlerta(paciente);
+}
+
+async function fetchHistoricoBackend() {
+    try {
+        const stored = carregarHistorico();
+        historicoPacientes = Array.isArray(stored)
+            ? stored.map(formatarHistoricoPaciente)
+            : [];
+        salvarHistorico();
+        atualizarHistorico();
+    } catch (error) {
+        console.warn('Erro ao carregar histórico local:', error);
+    }
+}
+
+async function carregarDadosIniciaisSeNecessario() {
+    if (!localStorage.getItem(filaKey)) {
+        try {
+            const resposta = await fetch('data/triagem.json');
+            const dados = await parseJsonSafe(resposta);
+            const inicial = Array.isArray(dados) ? dados.map(formatarPacienteFila) : [];
+            localStorage.setItem(filaKey, JSON.stringify(inicial));
+        } catch (error) {
+            console.warn('Não foi possível carregar triagem inicial:', error);
+        }
+    }
+    if (!localStorage.getItem(historicoKey)) {
+        try {
+            const resposta = await fetch('data/historico.json');
+            const dados = await parseJsonSafe(resposta);
+            const inicial = Array.isArray(dados) ? dados.map(formatarHistoricoPaciente) : [];
+            localStorage.setItem(historicoKey, JSON.stringify(inicial));
+        } catch (error) {
+            console.warn('Não foi possível carregar histórico inicial:', error);
+        }
+    }
+}
+
 function atualizarTabela() {
     tabelaPacientes.innerHTML = '';
 
@@ -187,8 +308,8 @@ function atualizarTabela() {
     filaPacientes.forEach((paciente) => {
         const linha = document.createElement('tr');
         const justificativaEscapada = paciente.justificativa ? paciente.justificativa.replace(/"/g, '&quot;') : '';
-        const tempoDecorrido = Math.floor((Date.now() - paciente.entradaFila) / 60000);
-        const limiteAlerta = limiteAlertaPorPrioridade[paciente.prioridade] || tempoBasePorPrioridade[paciente.prioridade] || 0;
+        const tempoDecorrido = Math.floor((Date.now() - (paciente.entradaFila || paciente.chegada)) / 60000);
+        const tempoAlertado = verificarAlertaTempo(paciente);
 
         linha.innerHTML = `
             <td>${paciente.nome}</td>
@@ -201,7 +322,7 @@ function atualizarTabela() {
             <td><button type="button" class="btn-call">Chamar Paciente</button></td>
         `;
 
-        if (tempoDecorrido > limiteAlerta) {
+        if (tempoAlertado) {
             linha.classList.add('alerta-prioridade');
         }
         tabelaPacientes.appendChild(linha);
@@ -276,6 +397,7 @@ async function chamarPaciente(paciente) {
             filaPacientes.splice(indice, 1);
         }
         atualizarPainel();
+        await fetchHistoricoBackend();
     } catch (error) {
         alert(error.message || 'Não foi possível chamar o paciente.');
         console.warn('Erro ao atender paciente:', error);
@@ -374,7 +496,7 @@ function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiolog
     }
 }
 
-form.addEventListener('submit', function(evento) {
+form.addEventListener('submit', async function(evento) {
     evento.preventDefault();
 
     const nome = document.getElementById('nome').value.trim();
@@ -437,6 +559,7 @@ form.addEventListener('submit', function(evento) {
     try {
         await enviarTriagemParaBackend(pacientePayload);
         await fetchFilaBackend();
+        await fetchHistoricoBackend();
         form.reset();
         if (detalheAlergiaContainer) {
             detalheAlergiaContainer.style.display = 'none';
@@ -477,12 +600,16 @@ if (dataNascimentoInput && idadeInput) {
 
 setInterval(() => {
     fetchFilaBackend();
+    fetchHistoricoBackend();
 }, 10000);
 
 historicoPacientes = carregarHistorico();
 atualizarHistorico();
 switchView('dashboard-view');
-fetchFilaBackend();
+carregarDadosIniciaisSeNecessario().then(() => {
+    fetchFilaBackend();
+    fetchHistoricoBackend();
+});
 
 const botaoLimparHistorico = document.getElementById('btn-limpar-historico');
 if (botaoLimparHistorico) {
@@ -490,6 +617,14 @@ if (botaoLimparHistorico) {
         if (confirm('Deseja realmente apagar todo o histórico de pacientes?')) {
             limparHistorico();
         }
+    });
+}
+
+const botaoAtualizarFila = document.getElementById('btn-atualizar-fila');
+if (botaoAtualizarFila) {
+    botaoAtualizarFila.addEventListener('click', () => {
+        fetchFilaBackend();
+        fetchHistoricoBackend();
     });
 }
 
