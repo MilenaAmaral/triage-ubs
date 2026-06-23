@@ -153,6 +153,7 @@ function atualizarTabela() {
 function atualizarPainel() {
     atualizarTabela();
     atualizarContadores();
+    atualizarStatusLotacao();
 }
 
 function atualizarContadores() {
@@ -166,6 +167,31 @@ function atualizarContadores() {
     cardLaranja.textContent = laranja;
     cardVerde.textContent = verde;
     cardAzul.textContent = azul;
+}
+
+function atualizarStatusLotacao() {
+    const statusEl = document.getElementById('status-unidade');
+    const statusIcon = document.getElementById('status-icone');
+    const statusTexto = document.getElementById('status-texto');
+    if (!statusEl || !statusIcon || !statusTexto) return;
+
+    const quantidade = filaPacientes.length;
+    statusEl.classList.remove('lotacao-normal', 'lotacao-moderado', 'lotacao-critico');
+    statusIcon.className = 'fa-solid';
+
+    if (quantidade > 30) {
+        statusTexto.textContent = `Nível de Lotação: Crítico (${quantidade} pacientes)`;
+        statusEl.classList.add('lotacao-critico');
+        statusIcon.classList.add('fa-triangle-exclamation');
+    } else if (quantidade >= 10) {
+        statusTexto.textContent = `Nível de Lotação: Moderado (${quantidade} pacientes)`;
+        statusEl.classList.add('lotacao-moderado');
+        statusIcon.classList.add('fa-exclamation-triangle');
+    } else {
+        statusTexto.textContent = `Nível de Lotação: Normal (${quantidade} pacientes)`;
+        statusEl.classList.add('lotacao-normal');
+        statusIcon.classList.add('fa-circle-check');
+    }
 }
 
 function calcularIdadePorDataNascimento(dataNascimento) {
