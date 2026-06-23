@@ -98,7 +98,7 @@ body {
 /* CARDS DE PRIORIDADE (KPIs) */
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 20px;
 }
 
@@ -115,8 +115,9 @@ body {
 
 /* Cores dinâmicas para as bordas dos cards baseadas na triagem */
 .card-kpi.vermelho { border-left-color: var(--manchester-vermelho); }
-.card-kpi.amarelo { border-left-color: var(--manchester-amarelo); }
+.card-kpi.laranja { border-left-color: var(--manchester-laranja); }
 .card-kpi.verde { border-left-color: var(--manchester-verde); }
+.card-kpi.azul { border-left-color: var(--manchester-azul); }
 .card-kpi.total { border-left-color: var(--primary-color); }
 
 .card-kpi span {
@@ -169,6 +170,12 @@ body {
     color: var(--text-main);
 }
 
+.form-section-title h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--primary-color);
+}
+
 .form-group input, .form-group select, .form-group textarea {
     padding: 10px;
     border: 1px solid #cbd5e1;
@@ -176,6 +183,13 @@ body {
     font-size: 16px;
     outline: none;
     transition: border-color 0.2s;
+}
+
+.aviso-vitais {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.35;
 }
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
@@ -233,5 +247,19 @@ th {
 }
 
 .badge.vermelho { background-color: var(--manchester-vermelho); }
-.badge.amarelo { background-color: var(--manchester-amarelo); color: #713f12; } /* Texto escuro para contraste */
+.badge.laranja { background-color: var(--manchester-laranja); color: #713f12; }
 .badge.verde { background-color: var(--manchester-verde); }
+.badge.azul { background-color: var(--manchester-azul); }
+
+.vazio {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 30px 0;
+}
+
+.hint {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
