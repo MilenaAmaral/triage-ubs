@@ -20,6 +20,7 @@ let filaInicioAtendimento = null;
 const prioridadePontuacao = {
     vermelho: 100,
     laranja: 80,
+    amarelo: 60,
     verde: 50,
     azul: 20
 };
@@ -45,6 +46,47 @@ function ordenarFila() {
         }
         return a.chegada - b.chegada;
     });
+}
+
+async function fetchFilaBackend() {
+    try {
+        const resposta = await fetch('/api/fila');
+        if (!resposta.ok) {
+            throw new Error('Falha ao carregar fila de atendimento.');
+        }
+        const dados = await resposta.json();
+        filaPacientes.length = 0;
+        filaPacientes.push(...dados);
+        ordenarFila();
+        atualizarPainel();
+    } catch (error) {
+        console.warn('Erro de rede ao buscar fila:', error);
+    }
+}
+
+async function enviarTriagemParaBackend(paciente) {
+    const resposta = await fetch('/api/triagem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paciente)
+    });
+    const dado = await resposta.json();
+    if (!resposta.ok) {
+        throw new Error(dado.error || 'Erro ao salvar triagem.');
+    }
+    return dado;
+}
+
+async function atenderPacienteBackend(id) {
+    const resposta = await fetch(`/api/triagem/${encodeURIComponent(id)}/atender`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    const dado = await resposta.json();
+    if (!resposta.ok) {
+        throw new Error(dado.error || 'Erro ao atender paciente.');
+    }
+    return dado;
 }
 
 function switchView(viewId) {
@@ -109,7 +151,7 @@ function registrarHistorico(paciente) {
         prioridade: paciente.prioridade,
         badgeTexto: paciente.badgeTexto,
         justificativa: paciente.justificativa,
-        dataHoraFormatada: new Date(paciente.entradaFila).toLocaleString('pt-BR', {
+        dataHoraFormatada: new Date(paciente.atendimentoHora || paciente.entradaFila).toLocaleString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -224,7 +266,22 @@ function capturarHistoricoMedico(alergiaDetalhe = '') {
     return historico;
 }
 
-function chamarPaciente(paciente) {
+async function chamarPaciente(paciente) {
+    try {
+        const resultado = await atenderPacienteBackend(paciente.id);
+        const pacienteAtendido = resultado.paciente || paciente;
+        registrarHistorico(pacienteAtendido);
+        const indice = filaPacientes.findIndex(item => item.id === paciente.id);
+        if (indice !== -1) {
+            filaPacientes.splice(indice, 1);
+        }
+        atualizarPainel();
+    } catch (error) {
+        alert(error.message || 'Não foi possível chamar o paciente.');
+        console.warn('Erro ao atender paciente:', error);
+        return;
+    }
+
     const telaRecepcao = document.getElementById('tela-recepcao');
     const recepcaoTexto = document.getElementById('recepcao-texto');
     if (!telaRecepcao || !recepcaoTexto) return;
@@ -357,31 +414,39 @@ form.addEventListener('submit', function(evento) {
     const classificacao = resultado.classificacao;
     const justificativa = resultado.justificativa;
 
-    adicionarPaciente(
+    const pacientePayload = {
         nome,
         cns,
         dataNascimento,
         idade,
         nomeMae,
         sexoBiologico,
-        Number(peso),
-        Number(fc),
-        Number(fr),
-        Number(saturacao),
-        Number(glicemia),
+        peso: Number(peso),
+        fc: Number(fc),
+        fr: Number(fr),
+        saturacao: Number(saturacao),
+        glicemia: Number(glicemia),
         pressao,
-        Number(temperatura),
-        classificacao,
+        temperatura: Number(temperatura),
+        prioridade: classificacao,
         sintomas,
         historicoMedico,
         justificativa
-    );
-    form.reset();
-    if (detalheAlergiaContainer) {
-        detalheAlergiaContainer.style.display = 'none';
-    }
-    if (alergiaMedicamentosDetalheInput) {
-        alergiaMedicamentosDetalheInput.required = false;
+    };
+
+    try {
+        await enviarTriagemParaBackend(pacientePayload);
+        await fetchFilaBackend();
+        form.reset();
+        if (detalheAlergiaContainer) {
+            detalheAlergiaContainer.style.display = 'none';
+        }
+        if (alergiaMedicamentosDetalheInput) {
+            alergiaMedicamentosDetalheInput.required = false;
+        }
+    } catch (error) {
+        alert(error.message || 'Erro ao enviar os dados da triagem.');
+        console.warn('Erro no envio da triagem:', error);
     }
 });
 
@@ -411,16 +476,13 @@ if (dataNascimentoInput && idadeInput) {
 }
 
 setInterval(() => {
-    if (filaPacientes.length > 0) {
-        atualizarTabela();
-    }
-}, 1000);
+    fetchFilaBackend();
+}, 10000);
 
 historicoPacientes = carregarHistorico();
 atualizarHistorico();
 switchView('dashboard-view');
-atualizarTabela();
-atualizarContadores();
+fetchFilaBackend();
 
 const botaoLimparHistorico = document.getElementById('btn-limpar-historico');
 if (botaoLimparHistorico) {
