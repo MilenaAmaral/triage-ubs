@@ -1,388 +1,104 @@
 ﻿/* ===========================================================================
-   ULTRA-MOBILE (Telas mínimas: 320px a 374px)
+   ESTRUTURA GLOBAL: TRANSFORMAÇÃO DE TABELAS EM CARDS (APENAS ATÉ 767px)
    =========================================================================== */
-@media (max-width: 374px) {
-    .sidebar {
-        padding: 12px;
-        gap: 12px;
-    }
 
-    .sidebar .logo {
-        font-size: 18px;
-    }
-
-    .nav-links a {
-        font-size: 13px;
-        padding: 8px 8px;
-    }
-
-    .panel {
-        padding: 12px;
-        min-height: auto;
-    }
-
-    .main-content {
-        padding: 8px 10px;
-        gap: 16px;
-    }
-
-    .kpi-grid {
-        gap: 12px;
-    }
-
-    .card-kpi {
-        padding: 10px;
-    }
-
-    .form-group {
-        margin-bottom: 10px;
-        gap: 6px;
-    }
-
-    .form-group label {
-        font-size: 12px;
-    }
-
-    .btn-secondary {
+@media (max-width: 767px) {
+    /* Força todos os elementos da tabela a se comportarem como blocos verticais flexíveis */
+    .queue-panel table, .queue-panel table thead, .queue-panel table tbody, .queue-panel table tr, .queue-panel table td,
+    .history-panel table, .history-panel table thead, .history-panel table tbody, .history-panel table tr, .history-panel table td {
+        display: block;
         width: 100%;
-        padding: 8px 12px;
-        font-size: 12px;
+        box-sizing: border-box;
     }
 
-    th {
-        font-size: 10px;
-        padding: 6px 4px;
+    /* Oculta os cabeçalhos em linha horizontal */
+    .queue-panel table thead,
+    .history-panel table thead {
+        display: none !important;
     }
 
-    table tbody tr td {
-        padding: 6px 4px;
-        max-width: 150px;
-    }
-
-    .panel h2 {
-        font-size: 16px;
-        margin-bottom: 12px;
-    }
-}
-
-/* ===========================================================================
-   SMARTPHONES (Telas pequenas: 375px a 480px)
-   =========================================================================== */
-@media (min-width: 375px) and (max-width: 480px) {
-    .sidebar {
-        padding: 14px;
-        gap: 14px;
-    }
-
-    .nav-links {
-        gap: 8px;
-    }
-
-    .nav-links a {
-        font-size: 14px;
-        padding: 10px 10px;
-    }
-
-    .panel {
-        padding: 16px;
-        min-height: auto;
-    }
-
-    .main-content {
-        padding: 12px 14px;
-        gap: 20px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .card-kpi {
-        padding: 12px;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .form-group.span-col-2 {
-        grid-column: span 1;
-    }
-
-    .med-history-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 10px 8px;
-    }
-
-    .panel-header {
-        align-items: flex-start;
-    }
-
-    .btn-secondary {
-        width: 100%;
-        padding: 10px 14px;
-    }
-
-    .form-actions {
-        justify-content: stretch;
-    }
-
-    th {
-        font-size: 11px;
-        padding: 8px 6px;
-    }
-
-    table tbody tr td {
-        padding: 8px 6px;
-        max-width: 140px;
-        font-size: 12px;
-    }
-
-    .panel h2 {
-        font-size: 18px;
-        margin-bottom: 14px;
-    }
-}
-
-/* ===========================================================================
-   SMALL PHONES (Telas pequenas: 481px a 600px)
-   =========================================================================== */
-@media (min-width: 481px) and (max-width: 600px) {
-    .sidebar {
-        padding: 16px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .med-history-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .panel {
-        padding: 18px;
-    }
-
-    th {
-        font-size: 12px;
-        padding: 10px 8px;
-    }
-
-    table tbody tr td {
-        padding: 10px 8px;
-        max-width: 160px;
-        font-size: 13px;
-    }
-}
-
-/* ===========================================================================
-   TABLETS (Telas médias: 601px a 768px)
-   =========================================================================== */
-@media (min-width: 601px) and (max-width: 768px) {
-    .sidebar {
-        padding: 18px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-    }
-
-    .form-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .form-group.span-col-2 {
-        grid-column: span 2;
-    }
-
-    .med-history-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .panel-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .main-content {
-        padding: 24px;
-    }
-
-    .panel {
+    /* Transformação da Linha da Tabela em um Card Focado */
+    .queue-panel table tbody tr,
+    .history-panel table tbody tr {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--surface-border-alt);
+        border-radius: 12px;
         padding: 20px;
-    }
-
-    .queue-panel .table-wrapper,
-    .history-panel .table-wrapper {
-        overflow-x: auto;
-    }
-
-    th {
-        font-size: 13px;
-        padding: 12px 10px;
-    }
-
-    table tbody tr td {
-        padding: 12px 10px;
-        max-width: 180px;
-        font-size: 14px;
-    }
-}
-
-/* ===========================================================================
-   LARGE TABLETS (Telas grandes: 769px a 1024px)
-   =========================================================================== */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .dashboard-container {
-        display: grid;
-        grid-template-columns: 220px 1fr;
-        width: 100%;
-    }
-
-    .sidebar {
-        padding: 24px 16px;
-        min-height: 100vh;
-        justify-content: flex-start;
-    }
-
-    .main-content {
-        padding: 32px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-    }
-
-    .data-section {
-        grid-template-columns: 1fr;
-    }
-
-    .form-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
-    }
-
-    .form-group.span-col-2 {
-        grid-column: span 2;
-    }
-
-    .med-history-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-    }
-
-    .panel {
-        padding: 22px;
-    }
-
-    th {
-        font-size: 13px;
-        padding: 12px 12px;
-    }
-
-    table tbody tr td {
-        padding: 12px 12px;
-        font-size: 14px;
-    }
-}
-
-/* ===========================================================================
-   DESKTOPS (Telas grandes: 1025px em diante)
-   =========================================================================== */
-@media (min-width: 1025px) {
-    .dashboard-container {
-        display: grid;
-        grid-template-columns: 260px 1fr;
-        width: 100%;
-    }
-
-    .sidebar {
+        margin-bottom: 16px;
+        box-shadow: 0 4px 6px -1px var(--shadow-color);
+        display: flex;
         flex-direction: column;
+        gap: 14px;
         align-items: stretch;
-        justify-content: flex-start;
-        padding: 30px 20px;
-        min-height: 100vh;
     }
 
-    .sidebar .nav-links {
+    /* Configuração padrão de cada campo interno do Card */
+    .queue-panel table tbody tr td,
+    .history-panel table tbody tr td {
+        padding: 0 !important;
+        font-size: 14px;
+        color: var(--text-main);
+        display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 4px;
+        white-space: normal !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow: visible !important;
+        border-bottom: none !important;
     }
 
-    .main-content {
-        padding: 40px;
+    /* Configuração dos rótulos superiores informativos (Labels) */
+    .queue-panel table tbody tr td::before,
+    .history-panel table tbody tr td::before {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .kpi-grid {
-        grid-template-columns: repeat(4, minmax(180px, 1fr));
-        gap: 20px;
+    /* Estilo de maior peso para o Nome do Paciente */
+    .queue-panel table tbody tr td:first-child,
+    .history-panel table tbody tr td:first-child {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary-color-text);
     }
 
-    .data-section {
-        grid-template-columns: 1.7fr 1fr;
-        gap: 28px;
+    /* =======================================================================
+       MAPEAMENTO SEPARADO DAS COLUNAS (CORREÇÃO DOS RÓTULOS DESALINHADOS)
+       ======================================================================= */
+
+    /* --- 1. PAINEL DA FILA DE ATENDIMENTO (.queue-panel) --- */
+    /* Ordem estrutural: Paciente (1), Idade (2), CNS (3), Prioridade (4), Sintomas/Histórico (5), Ações (6) */
+    .queue-panel table tbody tr td:nth-child(1)::before { content: "Paciente"; }
+    .queue-panel table tbody tr td:nth-child(2)::before { content: "Idade"; }
+    .queue-panel table tbody tr td:nth-child(3)::before { content: "CNS"; }
+    .queue-panel table tbody tr td:nth-child(4)::before { content: "Prioridade"; }
+    .queue-panel table tbody tr td:nth-child(5)::before { content: "Sintomas / Histórico"; }
+    .queue-panel table tbody tr td:nth-child(6)::before { content: "Ações"; }
+
+    /* --- 2. PAINEL DO HISTÓRICO (.history-panel) --- */
+    /* Ordem estrutural: Paciente (1), Idade (2), Prioridade (3), Entrada (4), Justificativa (5) */
+    .history-panel table tbody tr td:nth-child(1)::before { content: "Paciente"; }
+    .history-panel table tbody tr td:nth-child(2)::before { content: "Idade"; }
+    .history-panel table tbody tr td:nth-child(3)::before { content: "Prioridade"; }
+    .history-panel table tbody tr td:nth-child(4)::before { content: "Entrada (Data/Hora)"; }
+    .history-panel table tbody tr td:nth-child(5)::before { content: "Justificativa"; }
+
+    /* Forçamento de comportamento de Badge isolada nas quebras do mobile */
+    .queue-panel table tbody tr td:nth-child(4) .badge-prioridade,
+    .history-panel table tbody tr td:nth-child(3) .badge-prioridade {
+        align-self: flex-start;
+        margin-top: 2px;
     }
 
-    .form-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 24px;
-    }
-
-    .form-group.span-col-2 {
-        grid-column: span 2;
-    }
-
-    .med-history-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .double-panel {
-        grid-template-columns: 1fr;
-    }
-
-    .panel-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .queue-panel .table-wrapper,
-    .history-panel .table-wrapper {
-        overflow-x: auto;
-    }
-
-    th {
-        font-size: 14px;
-        padding: 14px 14px;
-    }
-
-    td {
-        padding: 14px 14px;
-        font-size: 14px;
-    }
-
-    .panel {
-        padding: 28px;
-    }
-
-    .btn-secondary {
-        width: auto;
+    /* Ajuste estrutural do botão de Ações para ocupar largura total elegante no mobile */
+    .queue-panel table tbody tr td:nth-child(6) .btn-call {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        margin-top: 4px;
     }
 }
