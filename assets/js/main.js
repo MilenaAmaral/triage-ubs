@@ -237,7 +237,7 @@ function atualizarHistorico() {
         linha.innerHTML = `
             <td>${paciente.nome}</td>
             <td>${paciente.idade}</td>
-            <td><span class="badge ${paciente.prioridade.toLowerCase()}">${paciente.badgeTexto}</span></td>
+            <td><span class="badge-prioridade ${paciente.prioridade.toLowerCase()}">${paciente.badgeTexto}</span></td>
             <td>${paciente.dataHoraFormatada}</td>
             <td>${paciente.justificativa || '-'}</td>
         `;
@@ -345,6 +345,7 @@ async function carregarDadosIniciaisSeNecessario() {
 }
 
 function atualizarTabela() {
+    if (!tabelaPacientes) return;
     tabelaPacientes.innerHTML = '';
 
     if (filaPacientes.length === 0) {
@@ -365,7 +366,7 @@ function atualizarTabela() {
             <td>${paciente.nome}</td>
             <td>${paciente.idade}</td>
             <td>${paciente.cns}</td>
-            <td><span class="badge ${paciente.prioridade.toLowerCase()}" title="${justificativaEscapada}">${paciente.badgeTexto}</span></td>
+            <td><span class="badge-prioridade ${paciente.prioridade.toLowerCase()}" title="${justificativaEscapada}">${paciente.badgeTexto}</span></td>
             <td>${paciente.historicoMedico && paciente.historicoMedico.length ? paciente.historicoMedico.join(', ') : '-'}</td>
             <td>${paciente.sintomas || '-'}</td>
             <td>${calcularTempoEspera(paciente)}</td>
@@ -396,11 +397,11 @@ function atualizarContadores() {
     const verde = filaPacientes.filter(p => p.prioridade === 'verde').length;
     const azul = filaPacientes.filter(p => p.prioridade === 'azul').length;
 
-    cardTotal.textContent = filaPacientes.length;
-    cardVermelho.textContent = vermelho;
-    cardLaranja.textContent = laranja;
-    cardVerde.textContent = verde;
-    cardAzul.textContent = azul;
+    if (cardTotal) cardTotal.textContent = filaPacientes.length;
+    if (cardVermelho) cardVermelho.textContent = vermelho;
+    if (cardLaranja) cardLaranja.textContent = laranja;
+    if (cardVerde) cardVerde.textContent = verde;
+    if (cardAzul) cardAzul.textContent = azul;
 }
 
 function atualizarStatusLotacao() {
@@ -466,7 +467,7 @@ function gerarBip() {
         const audioCtx = new AudioContext();
         const oscillator = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        oscillator.type = 'sine';
+         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         oscillator.connect(gain);
@@ -655,9 +656,9 @@ if (dataNascimentoInput && idadeInput) {
     });
 }
 
+// Atualização estável em tempo real (evita loops pesados no LocalStorage)
 setInterval(() => {
-    fetchFilaBackend();
-    fetchHistoricoBackend();
+    atualizarPainel();
 }, 10000);
 
 historicoPacientes = carregarHistorico();

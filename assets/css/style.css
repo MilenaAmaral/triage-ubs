@@ -280,12 +280,14 @@ html, body {
 .history-panel .table-wrapper,
 .queue-panel .table-wrapper,
 .table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100%;
+    overflow-x: auto !important;
+    display: block;
+    width: 100%;
     border-radius: 8px;
-    margin: 0 -10px;
-    padding: 0 10px;
+    border: 1px solid var(--surface-border-alt);
+    -webkit-overflow-scrolling: touch; 
+    margin: 10px 0; 
+    padding: 0;
 }
 
 .panel-header {
@@ -497,7 +499,8 @@ table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    min-width: 100%;
+    table-layout: auto;
+    min-width: 900px;
 }
 
 table thead tr {
@@ -525,6 +528,7 @@ th {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    background-color: var(--bg-surface-alt);
 }
 
 .btn-call {

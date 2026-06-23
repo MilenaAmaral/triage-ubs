@@ -66,21 +66,23 @@
         color: var(--primary-color-text);
     }
 
-    /* =======================================================================
+/* =======================================================================
        MAPEAMENTO SEPARADO DAS COLUNAS (CORREÇÃO DOS RÓTULOS DESALINHADOS)
        ======================================================================= */
 
     /* --- 1. PAINEL DA FILA DE ATENDIMENTO (.queue-panel) --- */
-    /* Ordem estrutural: Paciente (1), Idade (2), CNS (3), Prioridade (4), Sintomas/Histórico (5), Ações (6) */
+    /* Alinhado rigorosamente com as 8 colunas do index.html */
     .queue-panel table tbody tr td:nth-child(1)::before { content: "Paciente"; }
     .queue-panel table tbody tr td:nth-child(2)::before { content: "Idade"; }
     .queue-panel table tbody tr td:nth-child(3)::before { content: "CNS"; }
     .queue-panel table tbody tr td:nth-child(4)::before { content: "Prioridade"; }
-    .queue-panel table tbody tr td:nth-child(5)::before { content: "Sintomas / Histórico"; }
-    .queue-panel table tbody tr td:nth-child(6)::before { content: "Ações"; }
+    .queue-panel table tbody tr td:nth-child(5)::before { content: "Histórico Médico"; }
+    .queue-panel table tbody tr td:nth-child(6)::before { content: "Sintomas"; }
+    .queue-panel table tbody tr td:nth-child(7)::before { content: "Espera"; }
+    .queue-panel table tbody tr td:nth-child(8)::before { content: "Ações"; }
 
     /* --- 2. PAINEL DO HISTÓRICO (.history-panel) --- */
-    /* Ordem estrutural: Paciente (1), Idade (2), Prioridade (3), Entrada (4), Justificativa (5) */
+    /* Alinhado com as 5 colunas do histórico no index.html */
     .history-panel table tbody tr td:nth-child(1)::before { content: "Paciente"; }
     .history-panel table tbody tr td:nth-child(2)::before { content: "Idade"; }
     .history-panel table tbody tr td:nth-child(3)::before { content: "Prioridade"; }
@@ -95,7 +97,8 @@
     }
 
     /* Ajuste estrutural do botão de Ações para ocupar largura total elegante no mobile */
-    .queue-panel table tbody tr td:nth-child(6) .btn-call {
+    /* Atualizado para mirar o nth-child(8) que é a coluna real do botão */
+    .queue-panel table tbody tr td:nth-child(8) .btn-call {
         width: 100%;
         text-align: center;
         padding: 10px;
