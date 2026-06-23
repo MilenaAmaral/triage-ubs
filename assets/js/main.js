@@ -6,6 +6,8 @@ const navLinks = document.querySelectorAll('.nav-links a[data-view]');
 const views = document.querySelectorAll('.view');
 const historicoKey = 'triageUBSHistorico';
 const filaKey = 'triageUBSFila';
+const temaKey = 'triageUBSTema';
+const themeToggleButton = document.getElementById('theme-toggle-btn');
 let historicoPacientes = [];
 
 // Selecionando os números dos cards para atualização dinâmica
@@ -54,6 +56,55 @@ function ordenarFila() {
         }
         return (a.chegada || a.entradaFila) - (b.chegada || b.entradaFila);
     });
+}
+
+function atualizarTemaBotao(tema) {
+    if (!themeToggleButton) return;
+    const label = themeToggleButton.querySelector('#theme-toggle-label');
+    const icon = themeToggleButton.querySelector('i');
+    if (tema === 'dark') {
+        themeToggleButton.classList.add('dark-mode-active');
+        if (label) label.textContent = 'Modo Claro';
+        if (icon) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+    } else {
+        themeToggleButton.classList.remove('dark-mode-active');
+        if (label) label.textContent = 'Modo Escuro';
+        if (icon) {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    }
+}
+
+function aplicarTema(tema) {
+    if (tema === 'dark') {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    atualizarTemaBotao(tema);
+}
+
+function salvarTema(tema) {
+    localStorage.setItem(temaKey, tema);
+}
+
+function carregarTemaInicial() {
+    const temaArmazenado = localStorage.getItem(temaKey);
+    if (temaArmazenado) {
+        return temaArmazenado;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function alternarTema() {
+    const atual = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+    const proximoTema = atual === 'dark' ? 'light' : 'dark';
+    aplicarTema(proximoTema);
+    salvarTema(proximoTema);
 }
 
 function formatarPacienteFila(paciente) {
@@ -605,6 +656,13 @@ setInterval(() => {
 
 historicoPacientes = carregarHistorico();
 atualizarHistorico();
+const temaInicial = carregarTemaInicial();
+aplicarTema(temaInicial);
+
+if (themeToggleButton) {
+    themeToggleButton.addEventListener('click', alternarTema);
+}
+
 switchView('dashboard-view');
 carregarDadosIniciaisSeNecessario().then(() => {
     fetchFilaBackend();
