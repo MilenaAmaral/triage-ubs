@@ -237,7 +237,7 @@ function atualizarHistorico() {
         linha.innerHTML = `
             <td>${paciente.nome}</td>
             <td>${paciente.idade}</td>
-            <td><span class="badge ${paciente.prioridade}">${paciente.badgeTexto}</span></td>
+            <td><span class="badge ${paciente.prioridade.toLowerCase()}">${paciente.badgeTexto}</span></td>
             <td>${paciente.dataHoraFormatada}</td>
             <td>${paciente.justificativa || '-'}</td>
         `;
@@ -350,7 +350,7 @@ function atualizarTabela() {
     if (filaPacientes.length === 0) {
         tabelaPacientes.innerHTML = `
             <tr>
-                <td colspan="6" class="vazio">Nenhum paciente na fila. Registre um novo caso.</td>
+                <td colspan="8" class="vazio">Nenhum paciente na fila. Registre um novo caso.</td>
             </tr>
         `;
         return;
@@ -359,14 +359,13 @@ function atualizarTabela() {
     filaPacientes.forEach((paciente) => {
         const linha = document.createElement('tr');
         const justificativaEscapada = paciente.justificativa ? paciente.justificativa.replace(/"/g, '&quot;') : '';
-        const tempoDecorrido = Math.floor((Date.now() - (paciente.entradaFila || paciente.chegada)) / 60000);
         const tempoAlertado = verificarAlertaTempo(paciente);
 
         linha.innerHTML = `
             <td>${paciente.nome}</td>
             <td>${paciente.idade}</td>
             <td>${paciente.cns}</td>
-            <td><span class="badge ${paciente.prioridade}" title="${justificativaEscapada}">${paciente.badgeTexto}</span></td>
+            <td><span class="badge ${paciente.prioridade.toLowerCase()}" title="${justificativaEscapada}">${paciente.badgeTexto}</span></td>
             <td>${paciente.historicoMedico && paciente.historicoMedico.length ? paciente.historicoMedico.join(', ') : '-'}</td>
             <td>${paciente.sintomas || '-'}</td>
             <td>${calcularTempoEspera(paciente)}</td>
@@ -443,10 +442,6 @@ async function chamarPaciente(paciente) {
         const resultado = await atenderPacienteBackend(paciente.id);
         const pacienteAtendido = resultado.paciente || paciente;
         registrarHistorico(pacienteAtendido);
-        const indice = filaPacientes.findIndex(item => item.id === paciente.id);
-        if (indice !== -1) {
-            filaPacientes.splice(indice, 1);
-        }
         atualizarPainel();
         await fetchHistoricoBackend();
     } catch (error) {
@@ -515,6 +510,7 @@ function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiolog
 
     const entradaFila = Date.now();
     const paciente = {
+        id: 'p_' + entradaFila + '_' + Math.floor(Math.random() * 1000),
         nome,
         cns,
         dataNascimento,
@@ -540,7 +536,6 @@ function adicionarPaciente(nome, cns, dataNascimento, idade, nomeMae, sexoBiolog
     filaPacientes.push(paciente);
     ordenarFila();
     atualizarPainel();
-    registrarHistorico(paciente);
 
     if (!filaInicioAtendimento) {
         filaInicioAtendimento = Date.now();
@@ -612,6 +607,13 @@ form.addEventListener('submit', async function(evento) {
         await fetchFilaBackend();
         await fetchHistoricoBackend();
         form.reset();
+        
+        // Limpar aviso visual do select após reset do form se a função existir
+        const selectClassificacao = document.getElementById('classificacao');
+        if (selectClassificacao && typeof limparAvisoVisual === 'function') {
+            limparAvisoVisual(selectClassificacao);
+        }
+
         if (detalheAlergiaContainer) {
             detalheAlergiaContainer.style.display = 'none';
         }
@@ -645,6 +647,10 @@ if (dataNascimentoInput && idadeInput) {
         const idadeCalculada = calcularIdadePorDataNascimento(dataNascimentoInput.value);
         if (idadeCalculada !== '') {
             idadeInput.value = idadeCalculada;
+            // Força a atualização da classificação do triagem.js quando a idade mudar
+            if (typeof atualizarSugestaoPorSinais === 'function') {
+                atualizarSugestaoPorSinais();
+            }
         }
     });
 }
